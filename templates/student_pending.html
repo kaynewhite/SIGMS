@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Application Status - SIGMS{% endblock %}
+
+{% block nav_links %}
+<!-- <li><a href="{{ url_for('student_dashboard') }}" class="active">Dashboard</a></li>
+<li><a href="{{ url_for('profile') }}">Profile</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+<li><a href="{{ url_for('student_dashboard') }}" class="sidebar-link active"><i class="fas fa-home"></i> Dashboard</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fas fa-user"></i> My Profile</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">Application Status</h2>
+    
+    <div class="card">
+        <div class="card-header">
+            {% if status == 'pending' %}
+            <i class="fas fa-clock text-warning"></i> Application Pending Review
+            {% elif status == 'rejected' %}
+            <i class="fas fa-times-circle text-danger"></i> Application Rejected
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if status == 'pending' %}
+            <div class="text-center py-4">
+                <i class="fas fa-user-clock fa-4x text-warning mb-4"></i>
+                <h3 class="mb-3">Application Under Review</h3>
+                <p class="text-muted mb-4">
+                    Your application to join <strong>{{ current_user.sig }}</strong> is currently being reviewed by the SIG administrators.
+                </p>
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    You will receive access to the SIG dashboard once your application is approved.
+                </div>
+            </div>
+            {% elif status == 'rejected' %}
+            <div class="text-center py-4">
+                <i class="fas fa-times-circle fa-4x text-danger mb-4"></i>
+                <h3 class="mb-3">Application Not Approved</h3>
+                <p class="text-muted mb-4">
+                    Your application to join <strong>{{ current_user.sig }}</strong> was not approved.
+                </p>
+                <div class="alert alert-warning">
+                    <i class="fas fa-exclamation-triangle"></i> 
+                    Please contact the SIG administrators for more information.
+                </div>
+            </div>
+            {% endif %}
+            
+            <div class="application-details mt-4">
+                <h4>Your Application Details</h4>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <p><strong>Name:</strong> {{ current_user.name }}</p>
+                        <p><strong>Student Number:</strong> {{ current_user.student_number }}</p>
+                        <p><strong>Email:</strong> {{ current_user.email }}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <p><strong>SIG Applied:</strong> {{ current_user.sig }}</p>
+                        <p><strong>Year Level:</strong> Year {{ current_user.year }}</p>
+                        <p><strong>Section:</strong> {{ current_user.section }}</p>
+                        {% if current_user.major %}
+                        <p><strong>Major:</strong> {{ current_user.major }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

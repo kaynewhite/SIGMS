@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block title %}Send Requests - SIGMS{% endblock %}
+
+{% block nav_links %}
+<!-- <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+<li><a href="{{ url_for('requests') }}" class="active">Requests</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+<li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+<li><a href="{{ url_for('requests') }}" class="sidebar-link active"><i class="fas fa-paper-plane"></i> Send Requests</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">Send Event/Meeting Requests</h2>
+    
+    <div class="card">
+        <div class="card-header">New Request</div>
+        <div class="card-body">
+            <form id="requestForm">
+                <div class="form-group">
+                    <label for="requestType">Request Type</label>
+                    <select id="requestType" class="form-control" required>
+                        <option value="event">Event</option>
+                        <option value="meeting">Meeting</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="requestTitle">Title</label>
+                    <input type="text" id="requestTitle" class="form-control" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="requestDescription">Description</label>
+                    <textarea id="requestDescription" class="form-control" rows="4" required></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="requestDate">Date</label>
+                        <input type="date" id="requestDate" class="form-control" required>
+                    </div>
+                    <div class="form-group" id="timeGroup" style="display: none;">
+                        <label for="requestTime">Time</label>
+                        <input type="time" id="requestTime" class="form-control">
+                    </div>
+                </div>
+
+                <div class="form-group" id="roomGroup" style="display: none;">
+                    <label for="requestRoom">Room</label>
+                    <select id="requestRoom" class="form-control">
+                        <option value="">Select Room</option>
+                        <option value="RM100">RM100</option>
+                        <option value="RM101">RM101</option>
+                        <option value="RM102">RM102</option>
+                        <option value="RM103">RM103</option>
+                        <option value="RM104">RM104</option>
+                        <option value="RM105">RM105</option>
+                        <option value="RM106">RM106</option>
+                        <option value="RM107">RM107</option>
+                        <option value="RM108">RM108</option>
+                        <option value="RM201">RM201</option>
+                        <option value="RM202">RM202</option>
+                        <option value="RM203">RM203</option>
+                        <option value="RM204">RM204</option>
+                        <option value="RM205">RM205</option>
+                        <option value="RM206">RM206</option>
+                        <option value="RM207">RM207</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn">Submit Request</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const requestType = document.getElementById('requestType');
+    const timeGroup = document.getElementById('timeGroup');
+    const roomGroup = document.getElementById('roomGroup');
+    const requestForm = document.getElementById('requestForm');
+
+    requestType.addEventListener('change', function() {
+        if (this.value === 'meeting') {
+            timeGroup.style.display = 'block';
+            roomGroup.style.display = 'block';
+            document.getElementById('requestTime').required = true;
+            document.getElementById('requestRoom').required = true;
+        } else {
+            timeGroup.style.display = 'none';
+            roomGroup.style.display = 'none';
+            document.getElementById('requestTime').required = false;
+            document.getElementById('requestRoom').required = false;
+        }
+    });
+
+    requestForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            type: requestType.value,
+            title: document.getElementById('requestTitle').value,
+            description: document.getElementById('requestDescription').value,
+            date: document.getElementById('requestDate').value
+        };
+
+        if (requestType.value === 'meeting') {
+            formData.time = document.getElementById('requestTime').value;
+            formData.room = document.getElementById('requestRoom').value;
+        }
+
+        fetch('/submit_request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+                requestForm.reset();
+                timeGroup.style.display = 'none';
+                roomGroup.style.display = 'none';
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while submitting the request.');
+        });
+    });
+});
+</script>
+{% endblock %}

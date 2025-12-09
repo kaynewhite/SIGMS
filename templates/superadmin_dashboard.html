@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}Super Admin Dashboard - SIGMS{% endblock %}
+
+{% block nav_links %}
+<!-- <li><a href="{{ url_for('superadmin_dashboard') }}" class="active">Dashboard</a></li>
+<li><a href="{{ url_for('profile') }}">Profile</a></li>
+<li><a href="{{ url_for('members') }}">All Members</a></li>
+<li><a href="{{ url_for('events') }}">All Events</a></li>
+<li><a href="{{ url_for('requests') }}">Pending Requests</a></li>
+<li><a href="{{ url_for('reports') }}">Reports</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+<li><a href="{{ url_for('superadmin_dashboard') }}" class="sidebar-link active"><i class="fas fa-home"></i> Dashboard</a></li>
+<li><a href="{{ url_for('profile') }}" class="sidebar-link"><i class="fas fa-user"></i> My Profile</a></li>
+<li><a href="{{ url_for('members') }}" class="sidebar-link"><i class="fas fa-users"></i> All Members</a></li>
+<li><a href="{{ url_for('events') }}" class="sidebar-link"><i class="fas fa-calendar"></i> All Events</a></li>
+<li><a href="{{ url_for('requests') }}" class="sidebar-link"><i class="fas fa-inbox"></i> Pending Requests</a></li>
+<li><a href="{{ url_for('reports') }}" class="sidebar-link"><i class="fas fa-chart-bar"></i> Reports</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">Super Admin Dashboard</h2>
+    
+    <div class="stats-container">
+        <div class="stat-card">
+            <i class="fas fa-users fa-2x"></i>
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-inbox fa-2x"></i>
+            <div class="stat-value">{{ pending_requests|length }}</div>
+            <div class="stat-label">Pending Requests</div>
+        </div>
+        <div class="stat-card">
+            <i class="fas fa-shapes fa-2x"></i>
+            <div class="stat-value">5</div>
+            <div class="stat-label">Active SIGs</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">SIG Membership Statistics</div>
+        <div class="card-body">
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>SIG</th>
+                            <th>Members</th>
+                            <!-- <th>Percentage</th> -->
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sig, count in stats.items() %}
+                        <tr>
+                            <td>{{ sig }}</td>
+                            <td>{{ count }}</td>
+                            <!-- <td>
+                                <div class="progress-bar-container">
+                                    <div class="progress-bar" style="width: {{ (count / total_students * 100) if total_students > 0 else 0 }}%">
+                                        {{ "%.1f"|format((count / total_students * 100) if total_students > 0 else 0) }}%
+                                    </div>
+                                </div>
+                            </td> -->
+                            <!-- putanginaaaaa -->
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Pending Requests</div>
+        <div class="card-body">
+            {% if pending_requests %}
+            <div class="requests-list">
+                {% for request in pending_requests %}
+                <div class="request-item">
+                    <div class="request-header">
+                        <h4>{{ request.title }}</h4>
+                        <span class="badge badge-warning">{{ request.status|title }}</span>
+                    </div>
+                    <div class="request-details">
+                        <p><strong>SIG:</strong> {{ request.sig }}</p>
+                        <p><strong>Type:</strong> {{ request.event_type|title }}</p>
+                        <p><strong>Date:</strong> {{ request.date.strftime('%Y-%m-%d') }}</p>
+                        {% if request.event_type == 'meeting' %}
+                        <p><strong>Time:</strong> {{ request.time.strftime('%I:%M %p') }}</p>
+                        <p><strong>Room:</strong> {{ request.room }}</p>
+                        {% endif %}
+                        <p><strong>Description:</strong> {{ request.description }}</p>
+                    </div>
+                    <div class="request-actions">
+                        <button class="btn btn-success btn-sm approve-btn" data-id="{{ request.id }}">Approve</button>
+                        <button class="btn btn-danger btn-sm reject-btn" data-id="{{ request.id }}">Reject</button>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">No pending requests.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    //request approval at rejection
+    document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const eventId = this.getAttribute('data-id');
+            const action = this.classList.contains('approve-btn') ? 'approved' : 'rejected';
+            
+            const feedback = prompt(`Enter feedback for ${action} request:`);
+            if (feedback !== null) {
+                fetch('/handle_request', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        event_id: eventId,
+                        action: action,
+                        feedback: feedback
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert(data.message);
+                        location.reload();
+                    } else {
+                        alert(data.message);
+                    }
+                });
+            }
+        });
+    });
+});
+</script>
+{% endblock %}

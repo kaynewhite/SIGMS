@@ -1,0 +1,365 @@
+{% extends "base.html" %}
+
+{% block title %}Members - SCMS{% endblock %}
+
+{% block nav_links %}
+<!-- {% if current_user.user_type == 'student' %}
+<li><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+{% elif current_user.user_type == 'admin' %}
+<li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+{% else %}
+<li><a href="{{ url_for('superadmin_dashboard') }}">Dashboard</a></li>
+{% endif %}
+<li><a href="{{ url_for('members') }}" class="active">Members</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+{% if current_user.user_type == 'student' %}
+<li><a href="{{ url_for('student_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% elif current_user.user_type == 'admin' %}
+<li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% else %}
+<li><a href="{{ url_for('superadmin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% endif %}
+<li><a href="{{ url_for('members') }}" class="sidebar-link active"><i class="fas fa-users"></i> Members</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">
+        {% if current_user.user_type == 'student' %}
+        {{ current_user.sig }} Members
+        {% elif current_user.user_type == 'admin' %}
+        {{ current_user.sig }} Members
+        {% else %}
+        All Members
+        {% endif %}
+    </h2>
+    
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter"></i> Filters
+        </div>
+        <div class="card-body">
+            <form id="filterForm" method="GET" action="{{ url_for('members') }}" class="filter-form">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="search">Search Student Number</label>
+                        <div class="search-container">
+                            <input type="text" 
+                                   id="search" 
+                                   name="search" 
+                                   class="form-control" 
+                                   placeholder="Enter student number"
+                                   value="{{ search_query }}">
+                            <button type="button" class="search-clear" onclick="clearSearch()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="year">Year Level</label>
+                        <select id="year" name="year" class="form-control">
+                            <option value="">All Years</option>
+                            {% for year in unique_years %}
+                            <option value="{{ year }}" {% if year_filter == year|string %}selected{% endif %}>
+                                Year {{ year }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="section">Section</label>
+                        <select id="section" name="section" class="form-control">
+                            <option value="">All Sections</option>
+                            {% for section in unique_sections %}
+                            <option value="{{ section }}" {% if section_filter == section %}selected{% endif %}>
+                                Section {{ section }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="major">Major</label>
+                        <select id="major" name="major" class="form-control">
+                            <option value="">All Majors</option>
+                            {% for major in unique_majors %}
+                            <option value="{{ major }}" {% if major_filter == major %}selected{% endif %}>
+                                {{ major }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    
+                    {% if current_user.user_type == 'superadmin' %}
+                    <div class="form-group">
+                        <label for="sig">SIG</label>
+                        <select id="sig" name="sig" class="form-control">
+                            <option value="">All SIGs</option>
+                            {% for sig in unique_sigs %}
+                            <option value="{{ sig }}" {% if sig_filter == sig %}selected{% endif %}>
+                                {{ sig }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <div class="filter-buttons">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-filter"></i> Apply Filters
+                            </button>
+                            <button type="button" class="btn btn-secondary" onclick="resetFilters()">
+                                <i class="fas fa-redo"></i> Reset
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if year_filter or section_filter or major_filter or sig_filter or search_query %}
+                <div class="active-filters mt-3">
+                    <strong>Active Filters:</strong>
+                    {% if search_query %}
+                    <span class="filter-tag">
+                        Student Number: "{{ search_query }}"
+                        <button type="button" class="remove-filter" data-filter="search">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    {% endif %}
+                    {% if year_filter %}
+                    <span class="filter-tag">
+                        Year: {{ year_filter }}
+                        <button type="button" class="remove-filter" data-filter="year">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    {% endif %}
+                    {% if section_filter %}
+                    <span class="filter-tag">
+                        Section: {{ section_filter }}
+                        <button type="button" class="remove-filter" data-filter="section">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    {% endif %}
+                    {% if major_filter %}
+                    <span class="filter-tag">
+                        Major: {{ major_filter }}
+                        <button type="button" class="remove-filter" data-filter="major">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    {% endif %}
+                    {% if sig_filter and current_user.user_type == 'superadmin' %}
+                    <span class="filter-tag">
+                        SIG: {{ sig_filter }}
+                        <button type="button" class="remove-filter" data-filter="sig">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </span>
+                    {% endif %}
+                    <span class="filter-tag total-matches">
+                        {{ members|length }} member{{ 's' if members|length != 1 else '' }} found
+                    </span>
+                </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+    
+    <div class="card">
+        <div class="card-header">
+            Member List
+            {% if current_user.user_type == 'superadmin' %}
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="downloadMembers()">
+                    <i class="fas fa-download"></i> Download All
+                </button>
+            </div>
+            {% elif current_user.user_type == 'admin' %}
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="downloadSIGMembers()">
+                    <i class="fas fa-download"></i> Download SIG Members
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        <div class="card-body">
+            {% if members %}
+            <div class="table-container">
+                <table class="members-table">
+                    <thead>
+                        <tr>
+                            {% if current_user.user_type == 'superadmin' %}
+                            <th>SIG</th>
+                            {% endif %}
+                            <th>Student Number</th>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Year</th>
+                            <th>Section</th>
+                            {% if current_user.user_type == 'superadmin' or current_user.user_type == 'admin' %}
+                            <th>Major</th>
+                            <th>Status</th>
+                            {% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in members %}
+                        <tr>
+                            {% if current_user.user_type == 'superadmin' %}
+                            <td><span class="sig-badge {{ member.sig.lower().replace(' ', '') }}">{{ member.sig }}</span></td>
+                            {% endif %}
+                            <td>
+                                <strong>{{ member.student_number }}</strong>
+                                {% if search_query and search_query in member.student_number %}
+                                <span class="search-highlight"></span>
+                                {% endif %}
+                            </td>
+                            <td>{{ member.name }}</td>
+                            <td>{{ member.email }}</td>
+                            <td>Year {{ member.year }}</td>
+                            <td>Section {{ member.section }}</td>
+                            {% if current_user.user_type == 'superadmin' or current_user.user_type == 'admin' %}
+                            <td>{{ member.major or 'N/A' }}</td>
+                            <td>
+                                <span class="status-badge status-{{ member.status }}">
+                                    {{ member.status|title }}
+                                </span>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            
+            {% else %}
+            <div class="no-results text-center py-5">
+                <i class="fas fa-users-slash fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No members found</h4>
+                <p class="text-muted">
+                    {% if year_filter or section_filter or major_filter or sig_filter or search_query %}
+                    Try adjusting your filters or search criteria.
+                    {% else %}
+                    No members are currently registered.
+                    {% endif %}
+                </p>
+                {% if year_filter or section_filter or major_filter or sig_filter or search_query %}
+                <button class="btn btn-primary mt-2" onclick="resetFilters()">
+                    <i class="fas fa-redo"></i> Reset All Filters
+                </button>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function downloadMembers() {
+    const search = document.getElementById('search').value;
+    const year = document.getElementById('year').value;
+    const section = document.getElementById('section').value;
+    const major = document.getElementById('major').value;
+    const sig = document.getElementById('sig') ? document.getElementById('sig').value : '';
+    
+    let url = "{{ url_for('download_complete_members') }}";
+    const params = new URLSearchParams();
+    
+    if (search) params.append('search', search);
+    if (year) params.append('year', year);
+    if (section) params.append('section', section);
+    if (major) params.append('major', major);
+    if (sig) params.append('sig', sig);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    window.location.href = url;
+}
+
+function downloadSIGMembers() {
+    const search = document.getElementById('search').value;
+    const year = document.getElementById('year').value;
+    const section = document.getElementById('section').value;
+    const major = document.getElementById('major').value;
+    
+    let url = "{{ url_for('download_member_list') }}";
+    const params = new URLSearchParams();
+    
+    if (search) params.append('search', search);
+    if (year) params.append('year', year);
+    if (section) params.append('section', section);
+    if (major) params.append('major', major);
+    
+    if (params.toString()) {
+        url += '?' + params.toString();
+    }
+    
+    window.location.href = url;
+}
+
+function resetFilters() {
+    document.getElementById('search').value = '';
+    document.getElementById('year').value = '';
+    document.getElementById('section').value = '';
+    document.getElementById('major').value = '';
+    if (current_user.user_type == 'superadmin'){
+        document.getElementById('sig').value = '';
+    }
+    
+    document.getElementById('filterForm').submit();
+}
+
+function clearSearch() {
+    document.getElementById('search').value = '';
+    document.getElementById('filterForm').submit();
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    document.querySelectorAll('.remove-filter').forEach(button => {
+        button.addEventListener('click', function() {
+            const filterName = this.getAttribute('data-filter');
+            const form = document.getElementById('filterForm');
+            
+            if (filterName === 'search') {
+                document.getElementById('search').value = '';
+            } else {
+                document.getElementById(filterName).value = '';
+            }
+            
+            form.submit();
+        });
+    });
+    
+    const filterSelects = document.querySelectorAll('#filterForm select');
+    filterSelects.forEach(select => {
+        select.addEventListener('change', function() {
+            document.getElementById('filterForm').submit();
+        });
+    });
+    
+    const searchQuery = "{{ search_query }}";
+    if (searchQuery) {
+        const tableCells = document.querySelectorAll('.members-table td');
+        tableCells.forEach(cell => {
+            if (cell.textContent.includes(searchQuery)) {
+                cell.classList.add('highlighted-cell');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

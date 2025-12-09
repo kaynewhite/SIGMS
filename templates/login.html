@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - SIGMS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <img src="{{ url_for('static', filename='images/logo.png') }}" alt="SIGMS Logo" height="50">
+                <h2>SIGMS Login</h2>
+                <p>Special Interest Groups Management System</p>
+            </div>
+            <div class="login-body">
+                <form id="loginForm" method="POST" action="{{ url_for('login') }}">
+                    <div class="form-group">
+                        <label for="username">Student Number</label>
+                        <input type="text" id="username" name="username" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="password">Password</label>
+                        <input type="password" id="password" name="password" class="form-control" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="userType">Login As</label>
+                        <select id="userType" name="userType" class="form-control" required>
+                            <option value="student">Student</option>
+                            <option value="admin">SIG Officer</option>
+                            <option value="superadmin">Super Admin</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-block">Login</button>
+                </form>
+                <div class="login-links">
+                    <p>Don't have an account? <a href="#" id="showSignup">Apply Membership</a></p>
+                </div>
+            </div>
+        </div>
+
+        
+        <div id="signupModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Student Sign Up</h3>
+                    <span class="close">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <form id="signupForm">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="signupStudentNumber">Student Number</label>
+                                <input type="text" id="signupStudentNumber" class="form-control" required pattern="02\d{2}-\d{4}">
+                            </div>
+                            <div class="form-group">
+                                <label for="signupName">Full Name</label>
+                                <input type="text" id="signupName" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email</label>
+                            <input type="email" id="signupEmail" class="form-control" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="signupPassword">Password</label>
+                                <input type="password" id="signupPassword" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupConfirmPassword">Confirm Password</label>
+                                <input type="password" id="signupConfirmPassword" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="signupYear">Year Level</label>
+                                <select id="signupYear" class="form-control" required>
+                                    <option value="">Select Year</option>
+                                    <option value="1">1st Year</option>
+                                    <option value="2">2nd Year</option>
+                                    <option value="3">3rd Year</option>
+                                    <option value="4">4th Year</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="signupSection">Section</label>
+                                <select id="signupSection" class="form-control" required>
+                                    <option value="">Select Section</option>
+                                    <option value="A">A</option>
+                                    <option value="B">B</option>
+                                    <option value="C">C</option>
+                                    <option value="D">D</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group" id="signupMajorGroup" style="display: none;">
+                            <label for="signupMajor">Major</label>
+                            <select id="signupMajor" class="form-control">
+                                <option value="">Select Major</option>
+                                <option value="WMAD">WMAD</option>
+                                <option value="NETAD">NETAD</option>
+                                <option value="AMG">AMG</option>
+                                <option value="SMP">SMP</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupSIG">Special Interest Group</label>
+                            <select id="signupSIG" class="form-control" required>
+                                <option value="">Select SIG</option>
+                                <option value="CodEx">CodEx</option>
+                                <option value="Netac">Netac</option>
+                                <option value="Source Code">Source Code</option>
+                                <option value="Robotix">Robotix</option>
+                                <option value="Graphicos">Graphicos</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-block">Create Account</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+</body>
+</html>

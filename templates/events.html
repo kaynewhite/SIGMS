@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block title %}Events - SIGMS{% endblock %}
+
+{% block nav_links %}
+<!-- {% if current_user.user_type == 'student' %}
+<li><a href="{{ url_for('student_dashboard') }}">Dashboard</a></li>
+{% elif current_user.user_type == 'admin' %}
+<li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+{% else %}
+<li><a href="{{ url_for('superadmin_dashboard') }}">Dashboard</a></li>
+{% endif %}
+<li><a href="{{ url_for('events') }}" class="active">Events</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+{% if current_user.user_type == 'student' %}
+<li><a href="{{ url_for('student_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% elif current_user.user_type == 'admin' %}
+<li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% else %}
+<li><a href="{{ url_for('superadmin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% endif %}
+<li><a href="{{ url_for('events') }}" class="sidebar-link active"><i class="fas fa-calendar"></i> Events</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">
+        {% if current_user.user_type == 'student' %}
+        {{ current_user.sig }} Events & Meetings
+        {% elif current_user.user_type == 'admin' %}
+        {{ current_user.sig }} Events & Meetings
+        {% else %}
+        All Events & Meetings
+        {% endif %}
+    </h2>
+    
+    <div class="card">
+        <div class="card-header">Events Calendar</div>
+        <div class="card-body">
+            {% if events %}
+            <div class="events-timeline">
+                {% for event in events %}
+                <div class="timeline-item {% if event.status == 'approved' %}approved{% elif event.status == 'rejected' %}rejected{% else %}pending{% endif %}">
+                    <div class="timeline-date">
+                        <div class="date-box">
+                            <span class="month">{{ event.date.strftime('%b') }}</span>
+                            <span class="day">{{ event.date.strftime('%d') }}</span>
+                            <span class="year">{{ event.date.strftime('%Y') }}</span>
+                        </div>
+                    </div>
+                    <div class="timeline-content">
+                        <div class="event-header">
+                            <h4>{{ event.title }}</h4>
+                            <span class="status-badge {{ event.status }}">{{ event.status|title }}</span>
+                        </div>
+                        <p class="event-description">{{ event.description }}</p>
+                        <div class="event-meta">
+                            <span class="event-type">{{ event.event_type|title }}</span>
+                            {% if event.event_type == 'meeting' %}
+                            <span class="event-time"><i class="fas fa-clock"></i> {{ event.time.strftime('%I:%M %p') }}</span>
+                            <span class="event-room"><i class="fas fa-door-open"></i> {{ event.room }}</span>
+                            {% endif %}
+                            <span class="event-sig">{{ event.sig }}</span>
+                        </div>
+                        {% if event.feedback and current_user.user_type != 'student' %}
+                        <div class="event-feedback">
+                            <strong>Feedback:</strong> {{ event.feedback }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-muted">No events found.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

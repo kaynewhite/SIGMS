@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Officers - SIGMS{% endblock %}
+
+{% block nav_links %}
+<!-- <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+<li><a href="{{ url_for('officers') }}" class="active">Officers</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+<li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+<li><a href="{{ url_for('officers') }}" class="sidebar-link active"><i class="fas fa-user-tie"></i> Officers</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">Manage {{ current_user.sig }} Officers</h2>
+    
+    <div class="card">
+        <div class="card-header">Current Officers</div>
+        <div class="card-body">
+            <form id="officersForm">
+                <div id="officersContainer">
+                    {% if officers %}
+                        {% for officer in officers %}
+                        <div class="officer-row">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Position</label>
+                                    <input type="text" class="form-control officer-position" value="{{ officer.position }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" class="form-control officer-name" value="{{ officer.name }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="button" class="btn btn-danger remove-officer">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="officer-row">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>Position</label>
+                                    <input type="text" class="form-control officer-position" placeholder="Position" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>Name</label>
+                                    <input type="text" class="form-control officer-name" placeholder="Name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="button" class="btn btn-danger remove-officer">Remove</button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+                
+                <div class="form-actions">
+                    <button type="button" id="addOfficer" class="btn btn-secondary">
+                        <i class="fas fa-plus"></i> Add Another Officer
+                    </button>
+                    <button type="submit" class="btn">Save Officers</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const officersContainer = document.getElementById('officersContainer');
+    const addOfficerBtn = document.getElementById('addOfficer');
+    const officersForm = document.getElementById('officersForm');
+
+    addOfficerBtn.addEventListener('click', function() {
+        const newRow = document.createElement('div');
+        newRow.className = 'officer-row';
+        newRow.innerHTML = `
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Position</label>
+                    <input type="text" class="form-control officer-position" placeholder="e.g., President" required>
+                </div>
+                <div class="form-group">
+                    <label>Name</label>
+                    <input type="text" class="form-control officer-name" placeholder="e.g., John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>&nbsp;</label>
+                    <button type="button" class="btn btn-danger remove-officer">Remove</button>
+                </div>
+            </div>
+        `;
+        officersContainer.appendChild(newRow);
+        
+        newRow.querySelector('.remove-officer').addEventListener('click', function() {
+            if (officersContainer.children.length > 1) {
+                newRow.remove();
+            } else {
+                alert('At least one officer must remain.');
+            }
+        });
+    });
+
+    document.querySelectorAll('.remove-officer').forEach(button => {
+        button.addEventListener('click', function() {
+            if (officersContainer.children.length > 1) {
+                this.closest('.officer-row').remove();
+            } else {
+                alert('At least one officer must remain.');
+            }
+        });
+    });
+
+    officersForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const officers = [];
+        document.querySelectorAll('.officer-row').forEach(row => {
+            const position = row.querySelector('.officer-position').value;
+            const name = row.querySelector('.officer-name').value;
+            
+            if (position && name) {
+                officers.push({ position, name });
+            }
+        });
+
+        fetch('/officers', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ officers: officers })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(data.message);
+            } else {
+                alert(data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while saving officers.');
+        });
+    });
+});
+</script>
+{% endblock %}

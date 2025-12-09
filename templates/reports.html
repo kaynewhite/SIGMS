@@ -1,0 +1,171 @@
+{% extends "base.html" %}
+
+{% block title %}Reports - SIGMS{% endblock %}
+
+{% block nav_links %}
+<!-- {% if current_user.user_type == 'admin' %}
+<li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+{% else %}
+<li><a href="{{ url_for('superadmin_dashboard') }}">Dashboard</a></li>
+{% endif %}
+<li><a href="{{ url_for('reports') }}" class="active">Reports</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+{% if current_user.user_type == 'admin' %}
+<li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% else %}
+<li><a href="{{ url_for('superadmin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+{% endif %}
+<li><a href="{{ url_for('reports') }}" class="sidebar-link active"><i class="fas fa-chart-bar"></i> Reports</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">
+        {% if current_user.user_type == 'admin' %}
+        {{ current_user.sig }} Reports
+        {% else %}
+        System Reports
+        {% endif %}
+    </h2>
+    
+    <div class="card">
+        <div class="card-header">Download Reports</div>
+        <div class="card-body">
+            <div class="reports-grid">
+                {% if current_user.user_type == 'admin' %}
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-users fa-3x"></i>
+                    </div>
+                    <h4>Member List</h4>
+                    <p>Download complete list of {{ current_user.sig }} members</p>
+                    <button class="btn btn-secondary" onclick="downloadMemberList()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-user-tie fa-3x"></i>
+                    </div>
+                    <h4>Officers List</h4>
+                    <p>Download list of {{ current_user.sig }} officers</p>
+                    <button class="btn btn-secondary" onclick="downloadOfficersList()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-calendar fa-3x"></i>
+                    </div>
+                    <h4>Events Report</h4>
+                    <p>Download {{ current_user.sig }} events and meetings</p>
+                    <button class="btn btn-secondary" onclick="downloadEventsReport()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-chart-pie fa-3x"></i>
+                    </div>
+                    <h4>Statistics</h4>
+                    <p>Download {{ current_user.sig }} membership statistics</p>
+                    <button class="btn btn-secondary" onclick="downloadStatistics()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                {% else %}
+
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-users fa-3x"></i>
+                    </div>
+                    <h4>Complete Member Database</h4>
+                    <p>Download complete list of all students across all SIGs</p>
+                    <button class="btn btn-secondary" onclick="downloadCompleteMembers()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-calendar-alt fa-3x"></i>
+                    </div>
+                    <h4>All Events Report</h4>
+                    <p>Download complete events and meetings calendar</p>
+                    <button class="btn btn-secondary" onclick="downloadAllEvents()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-chart-bar fa-3x"></i>
+                    </div>
+                    <h4>SIG Statistics</h4>
+                    <p>Download comparative statistics for all SIGs</p>
+                    <button class="btn btn-secondary" onclick="downloadSIGStats()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                <div class="report-card">
+                    <div class="report-icon">
+                        <i class="fas fa-file-excel fa-3x"></i>
+                    </div>
+                    <h4>Complete System Report</h4>
+                    <p>Download comprehensive system data export</p>
+                    <button class="btn btn-secondary" onclick="downloadSystemReport()">
+                        <i class="fas fa-download"></i> Download
+                    </button>
+                </div>
+
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function downloadMemberList() {
+    window.location.href = "{{ url_for('download_member_list') }}";
+}
+
+function downloadOfficersList() {
+    window.location.href = "{{ url_for('download_officers_list') }}";
+}
+
+function downloadEventsReport() {
+    window.location.href = "{{ url_for('download_events_report') }}";
+}
+
+function downloadStatistics() {
+    window.location.href = "{{ url_for('download_statistics') }}";
+}
+
+
+
+function downloadCompleteMembers() {
+    window.location.href = "{{ url_for('download_complete_members') }}";
+}
+
+function downloadAllEvents() {
+    window.location.href = "{{ url_for('download_all_events') }}";
+}
+
+function downloadSIGStats() {
+    window.location.href = "{{ url_for('download_sig_stats') }}";
+}
+
+function downloadSystemReport() {
+    window.location.href = "{{ url_for('download_system_report') }}";
+}
+</script>
+{% endblock %}

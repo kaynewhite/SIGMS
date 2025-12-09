@@ -1,0 +1,432 @@
+{% extends "base.html" %}
+
+{% block title %}Student Applications - SIGMS{% endblock %}
+
+{% block nav_links %}
+<!-- <li><a href="{{ url_for('admin_dashboard') }}">Dashboard</a></li>
+<li><a href="{{ url_for('admin_applications') }}" class="active">Applications</a></li>
+<li><a href="{{ url_for('members') }}">Members</a></li> -->
+{% endblock %}
+
+{% block sidebar_links %}
+<li><a href="{{ url_for('admin_dashboard') }}" class="sidebar-link"><i class="fas fa-home"></i> Dashboard</a></li>
+<li><a href="{{ url_for('admin_applications') }}" class="sidebar-link active"><i class="fas fa-users"></i> Applications</a></li>
+<li><a href="{{ url_for('members') }}" class="sidebar-link"><i class="fas fa-user-check"></i> Members</a></li>
+{% endblock %}
+
+{% block content %}
+<div class="page active">
+    <h2 class="page-title">Student Applications - {{ current_user.sig }}</h2>
+    
+    <!--pending-->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-clock text-warning"></i> Pending Applications ({{ pending_students|length }})
+        </div>
+        <div class="card-body">
+            {% if pending_students %}
+            <div class="table-container">
+                <table class="applications-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Number</th>
+                            <th>Name</th>
+                            <th>Year & Section</th>
+                            <th>Major</th>
+                            <th>Email</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in pending_students %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ student.student_number }}</td>
+                            <td>{{ student.name }}</td>
+                            <td>Year {{ student.year }} - {{ student.section }}</td>
+                            <td>{{ student.major or 'N/A' }}</td>
+                            <td>{{ student.email }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-success btn-sm approve-btn" data-id="{{ student.id }}">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="btn btn-danger btn-sm reject-btn" data-id="{{ student.id }}">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">No pending applications.</p>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!--rejected -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-times-circle text-danger"></i> Rejected Applications ({{ rejected_students|length }})
+        </div>
+        <div class="card-body">
+            {% if rejected_students %}
+            <div class="table-container">
+                <table class="applications-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Student Number</th>
+                            <th>Name</th>
+                            <th>Year & Section</th>
+                            <th>Major</th>
+                            <th>Email</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in rejected_students %}
+                        <tr>
+                            <td>{{ loop.index }}</td>
+                            <td>{{ student.student_number }}</td>
+                            <td>{{ student.name }}</td>
+                            <td>Year {{ student.year }} - {{ student.section }}</td>
+                            <td>{{ student.major or 'N/A' }}</td>
+                            <td>{{ student.email }}</td>
+                            <td>
+                                <span class="status-badge status-{{ student.status }}">
+                                    {{ student.status|title }}
+                                </span>
+                            </td>
+                            <td>
+                                <div class="btn-group">
+                                    <button class="btn btn-warning btn-sm reconsider-btn" data-id="{{ student.id }}">
+                                        <i class="fas fa-redo"></i> Reconsider
+                                    </button>
+                                    <button class="btn btn-danger btn-sm delete-btn" data-id="{{ student.id }}">
+                                        <i class="fas fa-trash"></i> Delete
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <p class="text-muted text-center py-3">No rejected applications.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function attachEventListeners() {
+    document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+        button.replaceWith(button.cloneNode(true));
+    });
+    
+    document.querySelectorAll('.approve-btn, .reject-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const studentId = this.getAttribute('data-id');
+            const studentRow = this.closest('tr');
+            const studentName = studentRow.cells[2].textContent;
+            const action = this.classList.contains('approve-btn') ? 'approve' : 'rejecte';
+            
+            console.log(`Attempting to ${action} student: ${studentName} (ID: ${studentId})`);
+            
+            if (confirm(`Are you sure you want to ${action} ${studentName}'s application?`)) {
+                processApplication(this, studentId, action, studentName);
+            }
+        });
+    });
+    
+    document.querySelectorAll('.reconsider-btn').forEach(button => {
+        button.replaceWith(button.cloneNode(true));
+    });
+    
+    document.querySelectorAll('.reconsider-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const studentId = this.getAttribute('data-id');
+            const studentRow = this.closest('tr');
+            const studentName = studentRow.cells[2].textContent;
+            
+            console.log(`Attempting to reconsider student: ${studentName} (ID: ${studentId})`);
+            
+            if (confirm(`Are you sure you want to move ${studentName}'s application back to pending review?`)) {
+                processApplication(this, studentId, 'reconsider', studentName);
+            }
+        });
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.replaceWith(button.cloneNode(true));
+    });
+    
+    document.querySelectorAll('.delete-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const studentId = this.getAttribute('data-id');
+            const studentRow = this.closest('tr');
+            const studentName = studentRow.cells[2].textContent;
+            const studentNumber = studentRow.cells[1].textContent;
+            
+            console.log(`Attempting to delete student: ${studentName} (ID: ${studentId})`);
+            
+            if (confirm(`Are you sure you want to PERMANENTLY delete the application for ${studentName} (${studentNumber})?\n\nThis action cannot be undone!`)) {
+                deleteApplication(this, studentId, studentName, studentNumber);
+            }
+        });
+    });
+}
+
+function processApplication(button, studentId, action, studentName) {
+    button.disabled = true;
+    
+    const originalHTML = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+    
+    const buttonRow = button.closest('tr');
+    const allButtons = buttonRow.querySelectorAll('button');
+    allButtons.forEach(btn => {
+        if (btn !== button) {
+            btn.disabled = true;
+        }
+    });
+    
+    fetch('/admin/handle_application', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            student_id: studentId,
+            action: action
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        
+        if (data.success) {
+            showAlert('success', data.message);
+            
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
+        } else {
+            
+            showAlert('error', data.message);
+            
+            
+            resetButtons(button, originalHTML, allButtons);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        showAlert('error', 'An error occurred while processing the application.');
+        
+        resetButtons(button, originalHTML, allButtons);
+    });
+}
+
+function deleteApplication(button, studentId, studentName, studentNumber) {
+
+    button.disabled = true;
+    
+    const originalHTML = button.innerHTML;
+    
+    button.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+    
+    const buttonRow = button.closest('tr');
+    const allButtons = buttonRow.querySelectorAll('button');
+    allButtons.forEach(btn => {
+        if (btn !== button) {
+            btn.disabled = true;
+        }
+    });
+    
+    fetch('/admin/delete_application', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            student_id: studentId
+        })
+    })
+    .then(response => {
+        console.log('Response status:', response.status);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        return response.json();
+    })
+    .then(data => {
+        console.log('Response data:', data);
+        
+        if (data.success) {
+            showAlert('success', data.message);
+            
+            const row = button.closest('tr');
+            row.style.opacity = '0.5';
+            row.style.transition = 'opacity 0.5s';
+            
+            setTimeout(() => {
+                row.remove();
+                
+                updateRejectedCount();
+                
+                showAlert('success', 'Application deleted successfully!');
+            }, 500);
+        } else {
+            showAlert('error', data.message);
+            
+            resetButtons(button, originalHTML, allButtons);
+        }
+    })
+    .catch(error => {
+        console.error('Fetch error:', error);
+        showAlert('error', 'An error occurred while deleting the application.');
+        
+        // Re-enable buttons
+        resetButtons(button, originalHTML, allButtons);
+    });
+}
+
+function resetButtons(button, originalHTML, allButtons) {
+    button.innerHTML = originalHTML;
+    button.disabled = false;
+    
+    allButtons.forEach(btn => {
+        btn.disabled = false;
+    });
+}
+
+function showAlert(type, message) {
+    const existingAlert = document.querySelector('.custom-alert');
+    if (existingAlert) {
+        existingAlert.remove();
+    }
+    
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `custom-alert alert alert-${type === 'success' ? 'success' : 'danger'}`;
+    alertDiv.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 15px 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        animation: slideIn 0.3s ease;
+    `;
+    
+    const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+    alertDiv.innerHTML = `
+        <i class="fas ${icon}"></i> ${message}
+        <button type="button" class="close-alert" style="margin-left: 15px; background: none; border: none; cursor: pointer;">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    const closeBtn = alertDiv.querySelector('.close-alert');
+    closeBtn.addEventListener('click', () => {
+        alertDiv.remove();
+    });
+    
+    setTimeout(() => {
+        if (alertDiv.parentNode) {
+            alertDiv.style.opacity = '0';
+            alertDiv.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                if (alertDiv.parentNode) {
+                    alertDiv.remove();
+                }
+            }, 500);
+        }
+    }, 5000);
+}
+
+function updateRejectedCount() {
+    const rejectedTable = document.querySelector('.card:last-child table tbody');
+    const rejectedCount = rejectedTable ? rejectedTable.children.length : 0;
+    
+    const rejectedHeader = document.querySelector('.card:last-child .card-header');
+    if (rejectedHeader) {
+        rejectedHeader.innerHTML = rejectedHeader.innerHTML.replace(
+            /Rejected Applications \(\d+\)/,
+            `Rejected Applications (${rejectedCount})`
+        );
+    }
+    
+    if (rejectedCount === 0) {
+        const cardBody = document.querySelector('.card:last-child .card-body');
+        if (cardBody) {
+            cardBody.innerHTML = '<p class="text-muted text-center py-3">No rejected applications.</p>';
+        }
+    }
+}
+
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    .custom-alert {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .custom-alert i.fa-check-circle {
+        color: #28a745;
+        margin-right: 8px;
+    }
+    
+    .custom-alert i.fa-exclamation-circle {
+        color: #dc3545;
+        margin-right: 8px;
+    }
+    
+    .close-alert {
+        color: inherit;
+        opacity: 0.7;
+        transition: opacity 0.3s;
+    }
+    
+    .close-alert:hover {
+        opacity: 1;
+    }
+`;
+document.head.appendChild(style);
+
+document.addEventListener('DOMContentLoaded', attachEventListeners);
+
+document.addEventListener('turbolinks:load', attachEventListeners);
+document.addEventListener('page:load', attachEventListeners);
+</script>
+{% endblock %}

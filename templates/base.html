@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}SIGMS - Special Interest Groups{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}">
+</head>
+<body>
+    <div id="app">
+        <header>
+            <div class="header-content">
+                <div class="logo">
+                    <img src="{{ url_for('static', filename='images/logo.png') }}" id="logonav" alt="SIGMS Logo" height="40">
+                    <h1>Special Interest Group Management System</h1>
+                </div>
+                <nav>
+                    <ul>
+                        {% block nav_links %}{% endblock %}
+                    </ul>
+                </nav>
+                <div class="user-info">
+                    <div class="user-avatar">{{ current_user.name[0] if current_user.name else 'U' }}</div>
+                    <span>{{ current_user.name }}</span>
+                    <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <aside class="sidebar">
+                <ul class="sidebar-menu">
+                    {% block sidebar_links %}{% endblock %}
+                </ul>
+            </aside>
+
+            <main class="content">
+                <div id="flash-messages">
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ category }} flash-message">
+                                    {{ message }}
+                                    <button type="button" class="close-flash" onclick="this.parentElement.remove()">&times;</button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+                
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+
+        <footer>
+            <div class="container">
+                <p>&copy; 2025 SIGMS - Special Interest Groups Management System. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/auth.js') }}"></script>
+    {% block scripts %}
+    <script>
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        const alerts = document.querySelectorAll('.alert');
+        
+        alerts.forEach(alert => {
+            setTimeout(() => {
+                alert.style.opacity = '0';
+                alert.style.transition = 'opacity 0.5s ease';
+                setTimeout(() => {
+                    alert.remove();
+                }, 500);
+            }, 3000);
+        });
+
+        document.querySelectorAll('.close-flash').forEach(button => {
+            button.addEventListener('click', function() {
+                this.parentElement.remove();
+            });
+        });
+    });
+    </script>
+    {% endblock %}
+</body>
+</html>

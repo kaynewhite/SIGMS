@@ -1,0 +1,18 @@
+install virtual env
+ --> python -m venv venv
+ --> pip install -r requirements.txt
+ --> python app.py
+
+super admin account:
+username: thedictator
+password: diktador
+
+admins:
+
+directors:
+username=codexdirector
+password=same sa username
+
+vice directors:
+username=codexvicedirector
+password= same sa username
