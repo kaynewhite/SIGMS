@@ -4,8 +4,8 @@ install virtual env
  --> python app.py
 
 super admin account:
-username: thedictator
-password: diktador
+username: eroldjhonmancilla
+password: mancilla123
 
 admins:
 
